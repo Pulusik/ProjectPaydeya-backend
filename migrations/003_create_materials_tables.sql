@@ -34,10 +34,30 @@ CREATE INDEX IF NOT EXISTS idx_materials_status ON materials(status);
 
 -- Добавляем тестовые предметы
 INSERT INTO subjects (id, name, icon) VALUES
-    ('informatics', 'Информатика', '/icons/informatics.svg'),
+    ('algebra', 'Алгебра', '/icons/algebra.svg'),
+    ('calculus', 'Математический анализ', '/icons/calculus.svg'),
+    ('geometry', 'Геометрия', '/icons/geometry.svg'),
+    ('trigonometry', 'Тригонометрия', '/icons/trigonometry.svg'),
+    ('probability', 'Теория вероятностей', '/icons/probability.svg'),
+    ('statistics', 'Статистика', '/icons/statistics.svg'),
+    ('python', 'Python', '/icons/python.svg'),
+    ('datascience', 'Анализ данных', '/icons/datascience.svg'),
+    ('javascript', 'JavaScript', '/icons/javascript.svg'),
+    ('frontend', 'Фронтенд', '/icons/frontend.svg'),
+    ('java', 'Java', '/icons/java.svg'),
+    ('algorithms', 'Алгоритмы', '/icons/algorithms.svg'),
+    ('mechanics', 'Механика', '/icons/mechanics.svg'),
+    ('kinematics', 'Кинематика', '/icons/kinematics.svg'),
+    ('electrodynamics', 'Электродинамика', '/icons/electrodynamics.svg'),
+    ('optics', 'Оптика', '/icons/optics.svg'),
+    ('thermodynamics', 'Термодинамика', '/icons/thermodynamics.svg'),
+    ('quantum', 'Квантовая физика', '/icons/quantum.svg'),
     ('mathematics', 'Математика', '/icons/mathematics.svg'),
+    ('programming', 'Программирование', '/icons/programming.svg'),
     ('physics', 'Физика', '/icons/physics.svg'),
-    ('programming', 'Программирование', '/icons/programming.svg')
+    ('informatics', 'Информатика', '/icons/informatics.svg'),
+    ('web', 'Веб-разработка', '/icons/web.svg'),
+    ('backend', 'Бэкенд', '/icons/backend.svg')
 ON CONFLICT (id) DO NOTHING;
 
 -- Таблица блоков материалов
