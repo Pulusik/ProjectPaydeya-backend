@@ -2,6 +2,7 @@
 SET client_encoding = 'UTF8';
 
 
+
 -- Вставляем пользователей с красивыми ФИО
 INSERT INTO users (id, email, password_hash, full_name, role, avatar_url, is_verified, created_at) VALUES
 -- Администраторы
@@ -31,7 +32,8 @@ INSERT INTO users (id, email, password_hash, full_name, role, avatar_url, is_ver
 (16, 'student5@edu.ru', '$2b$10$examplehash', 'Лебедев Павел Викторович', 'student', '/avatars/student5.jpg', TRUE, '2024-01-16 22:00:00+03'),
 (17, 'student6@edu.ru', '$2b$10$examplehash', 'Соколова София Александровна', 'student', '/avatars/student6.jpg', TRUE, '2024-01-17 23:00:00+03'),
 (18, 'student7@edu.ru', '$2b$10$examplehash', 'Попов Максим Олегович', 'student', '/avatars/student7.jpg', TRUE, '2024-01-18 08:00:00+03'),
-(19, 'student8@edu.ru', '$2b$10$examplehash', 'Кузнецова Анастасия Денисовна', 'student', '/avatars/student8.jpg', TRUE, '2024-01-19 09:00:00+03');
+(19, 'student8@edu.ru', '$2b$10$examplehash', 'Кузнецова Анастасия Денисовна', 'student', '/avatars/student8.jpg', TRUE, '2024-01-19 09:00:00+03')
+ON CONFLICT (email) DO NOTHING;
 
 -- Специализации учителей
 INSERT INTO teacher_specializations (user_id, subject, created_at) VALUES
@@ -80,7 +82,8 @@ INSERT INTO teacher_specializations (user_id, subject, created_at) VALUES
 -- Орлова Светлана Михайловна - физика
 (11, 'physics', '2024-01-11 17:30:00+03'),
 (11, 'thermodynamics', '2024-01-11 17:35:00+03'),
-(11, 'quantum', '2024-01-11 17:40:00+03');
+(11, 'quantum', '2024-01-11 17:40:00+03')
+ON CONFLICT (user_id) DO NOTHING;
 
 -- Образовательные материалы
 INSERT INTO materials (id, title, subject_id, author_id, status, access, share_url, created_at, updated_at) VALUES
@@ -118,7 +121,8 @@ INSERT INTO materials (id, title, subject_id, author_id, status, access, share_u
 
 -- Физика - Орлова С.М.
 (17, 'Термодинамика: законы и применения', 'thermodynamics', 11, 'published', 'open', 'thermodynamics-laws', '2024-01-31 09:00:00+03', '2024-01-31 09:00:00+03'),
-(18, 'Введение в квантовую физику', 'quantum', 11, 'published', 'open', 'quantum-physics', '2024-02-01 10:00:00+03', '2024-02-01 10:00:00+03');
+(18, 'Введение в квантовую физику', 'quantum', 11, 'published', 'open', 'quantum-physics', '2024-02-01 10:00:00+03', '2024-02-01 10:00:00+03')
+ON CONFLICT (id) DO NOTHING;
 
 -- Блоки материалов (расширенное содержание)
 INSERT INTO material_blocks (material_id, block_id, type, content, position) VALUES
@@ -134,7 +138,8 @@ INSERT INTO material_blocks (material_id, block_id, type, content, position) VAL
 
 -- Материал 13: Физика
 (13, 'title13', 'text', '{"text": "Законы Ньютона", "level": "h1"}', 1),
-(13, 'law1', 'text', '{"text": "Первый закон Ньютона: тело сохраняет состояние покоя или равномерного движения...", "level": "p"}', 2);
+(13, 'law1', 'text', '{"text": "Первый закон Ньютона: тело сохраняет состояние покоя или равномерного движения...", "level": "p"}', 2)
+ON CONFLICT (material_id, block_id) DO NOTHING;
 
 -- Рейтинги материалов
 INSERT INTO material_ratings (material_id, user_id, rating, created_at) VALUES
@@ -158,7 +163,8 @@ INSERT INTO material_ratings (material_id, user_id, rating, created_at) VALUES
 (13, 15, 4, '2024-01-27 18:00:00+03'),
 (13, 16, 5, '2024-01-27 19:00:00+03'),
 (15, 17, 4, '2024-01-29 18:00:00+03'),
-(17, 12, 5, '2024-01-31 19:00:00+03');
+(17, 12, 5, '2024-01-31 19:00:00+03')
+ON CONFLICT (material_id, user_id) DO NOTHING;
 
 -- Избранные материалы
 INSERT INTO favorite_materials (user_id, material_id, created_at) VALUES
@@ -170,7 +176,9 @@ INSERT INTO favorite_materials (user_id, material_id, created_at) VALUES
 (14, 11, '2024-01-25 17:00:00+03'),
 (15, 13, '2024-01-27 18:00:00+03'),
 (16, 7, '2024-01-21 18:00:00+03'),
-(17, 9, '2024-01-23 17:00:00+03');
+(17, 9, '2024-01-23 17:00:00+03')
+ON CONFLICT (user_id, material_id) DO NOTHING;
+
 
 -- Завершенные материалы (прогресс обучения)
 INSERT INTO material_completions (user_id, material_id, time_spent, grade, completed_at, last_activity) VALUES
@@ -178,7 +186,8 @@ INSERT INTO material_completions (user_id, material_id, time_spent, grade, compl
 (12, 7, 4800, 4.8, '2024-01-21 18:00:00+03', '2024-01-21 18:00:00+03'),
 (13, 3, 4200, 4.2, '2024-01-17 16:00:00+03', '2024-01-17 16:00:00+03'),
 (14, 5, 3800, 4.7, '2024-01-19 16:00:00+03', '2024-01-19 16:00:00+03'),
-(15, 13, 5200, 4.9, '2024-01-27 19:00:00+03', '2024-01-27 19:00:00+03');
+(15, 13, 5200, 4.9, '2024-01-27 19:00:00+03', '2024-01-27 19:00:00+03')
+ON CONFLICT (user_id, material_id) DO NOTHING;
 
 -- Сбрасываем последовательности
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
