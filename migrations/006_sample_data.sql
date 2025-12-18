@@ -1,16 +1,6 @@
 -- migrations/006_sample_data_extended.sql
 SET client_encoding = 'UTF8';
 
--- Очистка данных в правильном порядке
-TRUNCATE TABLE 
-    material_completions,
-    favorite_materials,
-    material_ratings,
-    material_blocks,
-    materials,
-    teacher_specializations,
-    users 
-CASCADE;
 
 -- Вставляем пользователей с красивыми ФИО
 INSERT INTO users (id, email, password_hash, full_name, role, avatar_url, is_verified, created_at) VALUES
