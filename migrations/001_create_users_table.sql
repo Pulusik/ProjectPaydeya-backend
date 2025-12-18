@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
     ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason BOOLEAN DEFAULT NULL;
 
 -- Индексы для ускорения поиска
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
