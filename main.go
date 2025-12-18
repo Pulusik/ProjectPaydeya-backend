@@ -223,10 +223,14 @@ func main() {
     router.Use(cors.New(config))
      // Устанавливаем кодировку UTF-8 для всех JSON ответов
     router.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-        c.Next()
-    })
+       c.Next() // Сначала выполняем обработку
 
+       // Только ПОСЛЕ того как handler установил Content-Type
+       contentType := c.Writer.Header().Get("Content-Type")
+       if strings.Contains(contentType, "application/json") {
+           c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+       }
+    })
     router.GET("/debug/routes", func(c *gin.Context) {
         routes := router.Routes()
         var routeInfo []string
