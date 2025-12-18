@@ -93,7 +93,7 @@ INSERT INTO teacher_specializations (user_id, subject, created_at) VALUES
 (11, 'quantum', '2024-01-11 17:40:00+03');
 
 -- Образовательные материалы
-INSERT INTO materials (id, title, subject, author_id, status, access, share_url, created_at, updated_at) VALUES
+INSERT INTO materials (id, title, subject_id, author_id, status, access, share_url, created_at, updated_at) VALUES
 -- Математика - Петрова М.И.
 (1, 'Основы алгебры: переменные и уравнения', 'algebra', 3, 'published', 'open', 'algebra-basics', '2024-01-15 09:00:00+03', '2024-01-15 09:00:00+03'),
 (2, 'Дифференциальное исчисление для начинающих', 'calculus', 3, 'published', 'open', 'calculus-basics', '2024-01-16 10:00:00+03', '2024-01-16 10:00:00+03'),
