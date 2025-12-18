@@ -5,11 +5,13 @@ CREATE TABLE IF NOT EXISTS subjects (
     icon VARCHAR(200)
 );
 
+DROP TABLE IF EXISTS materials;
+
 -- Таблица материалов
 CREATE TABLE IF NOT EXISTS materials (
     id SERIAL PRIMARY KEY,
     title VARCHAR(1000) NOT NULL,
-    subject VARCHAR(200) NOT NULL,
+    subject_id VARCHAR(200) NOT NULL,
     author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL DEFAULT 'draft'
         CHECK (status IN ('draft', 'published', 'archived')),
