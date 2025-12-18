@@ -82,7 +82,8 @@ INSERT INTO teacher_specializations (user_id, subject, created_at) VALUES
 -- Орлова Светлана Михайловна - физика
 (11, 'physics', '2024-01-11 17:30:00+03'),
 (11, 'thermodynamics', '2024-01-11 17:35:00+03'),
-(11, 'quantum', '2024-01-11 17:40:00+03');
+(11, 'quantum', '2024-01-11 17:40:00+03')
+ON CONFLICT ON CONSTRAINT teacher_specializations_user_id_subject_key DO NOTHING;
 
 -- Образовательные материалы
 INSERT INTO materials (id, title, subject_id, author_id, status, access, share_url, created_at, updated_at) VALUES
