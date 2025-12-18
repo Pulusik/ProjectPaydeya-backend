@@ -76,9 +76,12 @@ func (h *CatalogHandler) SearchMaterials(c *gin.Context) {
 func (h *CatalogHandler) GetSubjects(c *gin.Context) {
     subjects, err := h.catalogService.GetSubjects(c.Request.Context())
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get subjects"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+
+    // Устанавливаем правильную кодировку
+    c.Header("Content-Type", "application/json; charset=utf-8")
 
     c.JSON(http.StatusOK, gin.H{
         "subjects": subjects,

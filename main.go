@@ -143,6 +143,12 @@ func main() {
         log.Println("⚠️  No .env file found, using environment variables")
     }
 
+    // Устанавливаем кодировку UTF-8 для всех JSON ответов
+    router.Use(func(c *gin.Context) {
+        c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+        c.Next()
+    })
+
     // Создаем конфиг для БД
     dbConfig := &database.Config{
         DBHost:     getEnv("DB_HOST", "localhost"),
@@ -403,5 +409,7 @@ func main() {
     if err := router.Run(":" + port); err != nil {
         log.Fatalf("❌ Failed to start server: %v", err)
     }
+
+
 }
 
