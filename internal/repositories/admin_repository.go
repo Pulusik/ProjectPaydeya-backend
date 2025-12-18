@@ -7,14 +7,15 @@ import (
 
     "paydeya-backend/internal/models"
 
-    "github.com/jackc/pgx/v5"
+    //"github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AdminRepository struct {
-    db *pgx.Conn
+    db *pgxpool.Pool
 }
 
-func NewAdminRepository(db *pgx.Conn) *AdminRepository {
+func NewAdminRepository(db *pgxpool.Pool) *AdminRepository {
     return &AdminRepository{db: db}
 }
 

@@ -4,17 +4,19 @@ import (
     "context"
     "fmt"
     "strings"
+    "log"
 
     "paydeya-backend/internal/models"
 
-    "github.com/jackc/pgx/v5"
+    //"github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CatalogRepository struct {
-    db *pgx.Conn
+    db *pgxpool.Pool
 }
 
-func NewCatalogRepository(db *pgx.Conn) *CatalogRepository {
+func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
     return &CatalogRepository{db: db}
 }
 
@@ -141,6 +143,7 @@ func (r *CatalogRepository) GetSubjects(ctx context.Context) ([]models.Subject, 
 
 // SearchTeachers поиск преподавателей
 func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.TeacherFilters) ([]models.Teacher, error) {
+    log.Printf("Building query with filters: %+v", filters)
     query := `
         SELECT u.id, u.full_name, u.avatar_url,
                COUNT(DISTINCT m.id) as materials_count,
@@ -171,7 +174,10 @@ func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.T
         query += " AND " + strings.Join(conditions, " AND ")
     }
 
-    query += " GROUP BY u.id, u.full_name, u.avatar_url ORDER BY rating DESC, materials_count DESC"
+    query += " GROUP BY u.id, u.full_name, u.avatar_url ORDER BY rating DESC NULLS LAST, materials_count DESC"
+
+    log.Printf("Final SQL query: %s", query) // ← ДОБАВЬТЕ
+    log.Printf("Query args: %v", args)       // ← ДОБАВЬТЕ
 
     rows, err := r.db.Query(ctx, query, args...)
     if err != nil {
@@ -182,13 +188,15 @@ func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.T
     var teachers []models.Teacher
     for rows.Next() {
         var teacher models.Teacher
-        if err := rows.Scan(&teacher.ID, &teacher.Name, &teacher.AvatarURL, &teacher.MaterialsCount, &teacher.Rating); err != nil {
+        var avatarURL *string
+        if err := rows.Scan(&teacher.ID, &teacher.Name, &avatarURL, &teacher.MaterialsCount, &teacher.Rating); err != nil {
             return nil, err
         }
 
         // Получаем специализации учителя
         specializations, err := r.getTeacherSpecializations(ctx, teacher.ID)
         if err != nil {
+            log.Printf("SQL query error: %v", err) // ← ДОБАВЬТЕ
             return nil, err
         }
         teacher.Specializations = specializations

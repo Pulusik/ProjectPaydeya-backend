@@ -111,3 +111,10 @@ git reset --soft HEAD~1
 - Локальная ссылка на Swagger документацию: http://localhost:8080/docs#/auth/post_auth_login
 
 - Общая ссылка: https://paydeya-backend.onrender.com/docs#/auth/post_auth_login
+
+
+## Частые ошибки
+
+### - Ошибка 500 при работе с медиа:
+
+- Проверььте ключи для подключения к облаку в .env файле

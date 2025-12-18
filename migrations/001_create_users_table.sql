@@ -3,9 +3,9 @@
 -- Таблица пользователей (основная)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(320) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
+    full_name VARCHAR(500) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'teacher', 'admin')),
     avatar_url VARCHAR(500),
     is_verified BOOLEAN DEFAULT FALSE,
@@ -24,12 +24,3 @@ CREATE TABLE IF NOT EXISTS specializations (
     subject VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Вставляем тестовые данные для проверкиjgh
-INSERT INTO users (email, password_hash, full_name, role, is_verified)
-VALUES
-    ('student@example.com', 'hashed_password_1', 'Иван Петров', 'student', true),
-    ('teacher@example.com', 'hashed_password_2', 'Мария Сидорова', 'teacher', true),
-    ('admin@example.com', 'hashed_password_3', 'Администратор Системы', 'admin', true)
-ON CONFLICT (email) DO NOTHING;
-

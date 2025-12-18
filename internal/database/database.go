@@ -5,32 +5,11 @@ import (
     "fmt"
     "log"
 
-    "github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"  // ← ИЗМЕНИТЬ ИМПОРТ
 )
 
-var DB *pgx.Conn
+var DB *pgxpool.Pool  // ← ИЗМЕНИТЬ ТИП
 
-/*func Init(cfg *Config) error {
-    connString := fmt.Sprintf(
-        "postgres://%s:%s@%s:%d/%s",
-        cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName,
-    )
-
-    conn, err := pgx.Connect(context.Background(), connString)
-    if err != nil {
-        return fmt.Errorf("unable to connect to database: %w", err)
-    }
-
-    // Test connection
-    if err := conn.Ping(context.Background()); err != nil {
-        return fmt.Errorf("unable to ping database: %w", err)
-    }
-
-    DB = conn
-    log.Println("✅ Successfully connected to PostgreSQL")
-    return nil
-}
-*/
 func Init(cfg *Config) error {
     connString := fmt.Sprintf(
         "postgres://%s:%s@%s:%d/%s",
@@ -39,31 +18,32 @@ func Init(cfg *Config) error {
 
     log.Printf("🔗 Connecting to: %s@%s:%d/%s", cfg.DBUser, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
-    conn, err := pgx.Connect(context.Background(), connString)
+    // ИЗМЕНИТЬ: используем pgxpool вместо pgx.Connect
+    pool, err := pgxpool.New(context.Background(), connString)
     if err != nil {
         log.Printf("❌ Connection failed: %v", err)
         return fmt.Errorf("unable to connect to database: %w", err)
     }
 
     // Test connection
-    if err := conn.Ping(context.Background()); err != nil {
+    if err := pool.Ping(context.Background()); err != nil {
         log.Printf("❌ Ping failed: %v", err)
-        conn.Close(context.Background())
+        pool.Close()
         return fmt.Errorf("unable to ping database: %w", err)
     }
 
-    DB = conn
-    log.Printf("✅ Database connected successfully! DB pointer: %p", DB)
+    DB = pool  // ← ТЕПЕРЬ POOL
+    log.Printf("✅ Database connected successfully with connection pool! DB pointer: %p", DB)
     return nil
 }
 
 func Close() {
     if DB != nil {
-        DB.Close(context.Background())
+        DB.Close()  // ← УБРАТЬ CONTEXT
     }
 }
 
-// Config - временно определим здесь, чтобы избежать циклических импортов
+// Config остается без изменений
 type Config struct {
     DBHost     string
     DBPort     int

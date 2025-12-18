@@ -6,13 +6,14 @@ import (
     "paydeya-backend/internal/models"
 
     "github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 type MaterialRepository struct {
-    db *pgx.Conn
+    db *pgxpool.Pool
 }
 
-func NewMaterialRepository(db *pgx.Conn) *MaterialRepository {
+func NewMaterialRepository(db *pgxpool.Pool) *MaterialRepository {
     return &MaterialRepository{db: db}
 }
 

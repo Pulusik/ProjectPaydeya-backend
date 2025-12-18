@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS subjects (
 -- Таблица материалов
 CREATE TABLE IF NOT EXISTS materials (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(500) NOT NULL,
-    subject_id VARCHAR(50) NOT NULL,
+    title VARCHAR(1000) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
     author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL DEFAULT 'draft'
         CHECK (status IN ('draft', 'published', 'archived')),

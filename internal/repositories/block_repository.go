@@ -6,14 +6,15 @@ import (
 
     "paydeya-backend/internal/models"
 
-    "github.com/jackc/pgx/v5"
+    //"github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 type BlockRepository struct {
-    db *pgx.Conn
+    db *pgxpool.Pool
 }
 
-func NewBlockRepository(db *pgx.Conn) *BlockRepository {
+func NewBlockRepository(db *pgxpool.Pool) *BlockRepository {
     return &BlockRepository{db: db}
 }
 

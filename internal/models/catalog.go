@@ -29,7 +29,7 @@ type Teacher struct {
     Specializations []string `json:"specializations" example:"math,physics"`
     Rating          float64  `json:"rating" example:"4.9"`
     MaterialsCount  int      `json:"materialsCount" example:"25"`
-    AvatarURL       string   `json:"avatarUrl,omitempty" example:"https://example.com/avatar.jpg"`
+    AvatarURL       *string   `json:"avatarUrl,omitempty" example:"https://example.com/avatar.jpg"`
 }
 
 // Subject represents subject/course

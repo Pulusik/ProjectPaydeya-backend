@@ -6,14 +6,15 @@ import (
 
     "paydeya-backend/internal/models"
 
-    "github.com/jackc/pgx/v5"
+    //"github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProgressRepository struct {
-    db *pgx.Conn
+    db *pgxpool.Pool
 }
 
-func NewProgressRepository(db *pgx.Conn) *ProgressRepository {
+func NewProgressRepository(db *pgxpool.Pool) *ProgressRepository {
     return &ProgressRepository{db: db}
 }
 

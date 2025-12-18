@@ -12,16 +12,3 @@ CREATE TABLE IF NOT EXISTS teacher_specializations (
 
 -- Индекс для быстрого поиска специализаций по пользователю
 CREATE INDEX IF NOT EXISTS idx_teacher_specializations_user_id ON teacher_specializations(user_id);
-
--- Вставляем тестовые данные для существующих учителей
-INSERT INTO teacher_specializations (user_id, subject)
-SELECT id, 'Информатика'
-FROM users
-WHERE role = 'teacher' AND id = 2
-ON CONFLICT (user_id, subject) DO NOTHING;
-
-INSERT INTO teacher_specializations (user_id, subject)
-SELECT id, 'Математика'
-FROM users
-WHERE role = 'teacher' AND id = 2
-ON CONFLICT (user_id, subject) DO NOTHING;

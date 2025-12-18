@@ -29,8 +29,8 @@ func NewCatalogHandler(catalogService *services.CatalogService) *CatalogHandler 
 // @Param page query int false "Номер страницы" default(1)
 // @Param limit query int false "Количество материалов на странице" default(20)
 // @Success 200 {object} MaterialsResponse "Список материалов"
-// @Failure 400 {object} InvalidParametersErrorResponse "Неверные параметры запроса"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
+// @Failure 400 {object} ErrorResponse "Неверные параметры запроса"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
 // @Router /catalog/materials [get]
 func (h *CatalogHandler) SearchMaterials(c *gin.Context) {
     var filters models.CatalogFilters
@@ -71,7 +71,7 @@ func (h *CatalogHandler) SearchMaterials(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} SubjectsResponse "Список предметов"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
 // @Router /catalog/subjects [get]
 func (h *CatalogHandler) GetSubjects(c *gin.Context) {
     subjects, err := h.catalogService.GetSubjects(c.Request.Context())
@@ -94,8 +94,8 @@ func (h *CatalogHandler) GetSubjects(c *gin.Context) {
 // @Param search query string false "Поисковый запрос"
 // @Param subject query string false "Фильтр по предмету"
 // @Success 200 {object} TeachersResponse "Список преподавателей"
-// @Failure 400 {object} InvalidParametersErrorResponse "Неверные параметры запроса"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
+// @Failure 400 {object} ErrorResponse "Неверные параметры запроса"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
 // @Router /catalog/teachers [get]
 func (h *CatalogHandler) SearchTeachers(c *gin.Context) {
     var filters models.TeacherFilters

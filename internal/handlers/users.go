@@ -5,12 +5,13 @@ import (
     "net/http"
 
     "github.com/gin-gonic/gin"
-    "github.com/jackc/pgx/v5"
+    //"github.com/jackc/pgx/v5"
+    "github.com/jackc/pgx/v5/pgxpool"
 )
 
 
 // Временная функция для тестирования БД
-func GetUsersTest(db *pgx.Conn) gin.HandlerFunc {
+func GetUsersTest(db *pgxpool.Pool) gin.HandlerFunc {
     return func(c *gin.Context) {
         rows, err := db.Query(context.Background(), "SELECT id, email, full_name, role FROM users")
         if err != nil {

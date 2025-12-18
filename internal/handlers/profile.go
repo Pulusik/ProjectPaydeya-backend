@@ -32,8 +32,8 @@ func NewProfileHandler(authService *services.AuthService, userRepo *repositories
 // @Produce json
 // @Security ApiKeyAuth
 // @Success 200 {object} ProfileResponse "Данные профиля"
-// @Failure 404 {object} UserNotFoundErrorResponse "Пользователь не найден"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
+// @Failure 404 {object} ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
 // @Router /profile [get]
 func (h *ProfileHandler) GetProfile(c *gin.Context) {
     userID := c.GetInt("userID")
@@ -80,9 +80,9 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param input body UpdateProfileRequest true "Данные для обновления"
 // @Success 200 {object} UpdateProfileResponse "Профиль обновлен"
-// @Failure 400 {object} InvalidParametersErrorResponse "Неверные параметры запроса"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
-// @Router /profile [patch]
+// @Failure 400 {object} ErrorResponse "Неверные данные"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Router /profile [put]
 func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
     userID := c.GetInt("userID")
 
@@ -115,8 +115,8 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param avatar formData file true "Файл аватара (макс. 5MB)"
 // @Success 200 {object} UploadAvatarResponse "Аватар загружен"
-// @Failure 400 {object} InvalidFileErrorResponse "Неверный файл"
-// @Failure 500 {object} InternalErrorResponse "Ошибка сервера"
+// @Failure 400 {object} ErrorResponse "Неверный файл"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
 // @Router /profile/avatar [post]
 func (h *ProfileHandler) UploadAvatar(c *gin.Context) {
     userID := c.GetInt("userID")
