@@ -143,11 +143,7 @@ func main() {
         log.Println("⚠️  No .env file found, using environment variables")
     }
 
-    // Устанавливаем кодировку UTF-8 для всех JSON ответов
-    router.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-        c.Next()
-    })
+
 
     // Создаем конфиг для БД
     dbConfig := &database.Config{
@@ -225,6 +221,11 @@ func main() {
     config.AllowCredentials = true
     config.MaxAge = 12 * time.Hour
     router.Use(cors.New(config))
+     // Устанавливаем кодировку UTF-8 для всех JSON ответов
+    router.Use(func(c *gin.Context) {
+        c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+        c.Next()
+    })
 
     router.GET("/debug/routes", func(c *gin.Context) {
         routes := router.Routes()
