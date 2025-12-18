@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     icon VARCHAR(200)
 );
 
-DROP TABLE IF EXISTS materials;
+
 
 -- Таблица материалов
 CREATE TABLE IF NOT EXISTS materials (
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS materials (
         FOREIGN KEY (subject_id)
         REFERENCES subjects(id)
 );
+ALTER TABLE materials RENAME COLUMN subject TO subject_id;'
 
 -- Индексы
 CREATE INDEX IF NOT EXISTS idx_materials_author_id ON materials(author_id);
