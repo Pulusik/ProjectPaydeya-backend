@@ -20,7 +20,7 @@ func NewMaterialRepository(db *pgxpool.Pool) *MaterialRepository {
 // CreateMaterial создает новый материал
 func (r *MaterialRepository) CreateMaterial(ctx context.Context, material *models.Material) error {
     query := `
-        INSERT INTO materials (title, subject, author_id, status, access, share_url)
+        INSERT INTO materials (title, subject_id, author_id, status, access, share_url)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id, created_at, updated_at
     `
@@ -38,7 +38,7 @@ func (r *MaterialRepository) GetMaterial(ctx context.Context, id int) (*models.M
     var material models.Material
 
     query := `
-        SELECT id, title, subject, author_id, status, access, share_url, created_at, updated_at
+        SELECT id, title, subject_id, author_id, status, access, share_url, created_at, updated_at
         FROM materials
         WHERE id = $1
     `
@@ -63,11 +63,11 @@ func (r *MaterialRepository) GetUserMaterials(ctx context.Context, userID int, s
     var err error
 
     if status == "" {
-        query = `SELECT id, title, subject, status, access, created_at, updated_at
+        query = `SELECT id, title, subject_id, status, access, created_at, updated_at
                  FROM materials WHERE author_id = $1 ORDER BY updated_at DESC`
         rows, err = r.db.Query(ctx, query, userID)
     } else {
-        query = `SELECT id, title, subject, status, access, created_at, updated_at
+        query = `SELECT id, title, subject_id, status, access, created_at, updated_at
                  FROM materials WHERE author_id = $1 AND status = $2 ORDER BY updated_at DESC`
         rows, err = r.db.Query(ctx, query, userID, status)
     }
