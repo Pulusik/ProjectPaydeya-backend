@@ -3,17 +3,13 @@ package models
 // CatalogMaterial represents material in catalog
 // @Description Материал в каталоге
 type CatalogMaterial struct {
-    ID            int     `json:"id" example:"1"`
-    Title         string  `json:"title" example:"Основы алгебры"`
-    Subject       string  `json:"subject" example:"math"`
+    ID            int     `json:"id"`
+    Title         string  `json:"title"`
+    Subject       string  `json:"subject"`  // ← строка, а не int
     Author        Author  `json:"author"`
-    Rating        float64 `json:"rating" example:"4.8"`
-    StudentsCount int     `json:"studentsCount" example:"150"`
-    Duration      int     `json:"duration,omitempty" example:"120"`
-    Level         string  `json:"level,omitempty" example:"beginner"`
-    ThumbnailURL  string  `json:"thumbnailUrl,omitempty" example:"https://example.com/thumbnail.jpg"`
+    Rating        float64 `json:"rating"`
+    StudentsCount int     `json:"studentsCount"`
 }
-
 // Author represents material author
 // @Description Автор материала
 type Author struct {

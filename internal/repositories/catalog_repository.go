@@ -22,24 +22,18 @@ func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 
 // SearchMaterials поиск материалов с фильтрацией
 func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.CatalogFilters) ([]models.CatalogMaterial, int, error) {
-    var materials []models.CatalogMaterial
-    var total int
-
-    // Базовый запрос
     baseQuery := `
-        SELECT m.id, m.title, m.subject_id,
-               u.id as author_id, u.full_name as author_name,
-               COALESCE(rm.rating, 0) as rating,
-               COALESCE(rm.students_count, 0) as students_count
+        SELECT
+            m.id,
+            m.title,
+            m.subject_id as subject,  -- ← subject_id переименовываем в subject
+            u.id as author_id,
+            u.full_name as author_name,
+            COALESCE(AVG(mr.rating), 0) as rating,
+            COUNT(DISTINCT mr.user_id) as students_count
         FROM materials m
         JOIN users u ON m.author_id = u.id
-        LEFT JOIN (
-            SELECT material_id,
-                   AVG(rating) as rating,
-                   COUNT(*) as students_count
-            FROM material_ratings
-            GROUP BY material_id
-        ) rm ON m.id = rm.material_id
+        LEFT JOIN material_ratings mr ON m.id = mr.material_id
         WHERE m.status = 'published'
     `
 
@@ -55,31 +49,39 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
     }
 
     if filters.Subject != "" {
-        conditions = append(conditions, fmt.Sprintf("m.subject_id = $%d", argIndex))
+        conditions = append(conditions, fmt.Sprintf("m.subject_id = $%d", argIndex))  // ← subject_id
         args = append(args, filters.Subject)
         argIndex++
     }
 
-    if filters.Level != "" {
-        conditions = append(conditions, fmt.Sprintf("m.level = $%d", argIndex))
-        args = append(args, filters.Level)
-        argIndex++
-    }
+    // УБЕРИТЕ фильтр по level - его нет в таблице!
+    // if filters.Level != "" {
+    //     conditions = append(conditions, fmt.Sprintf("m.level = $%d", argIndex))
+    //     args = append(args, filters.Level)
+    //     argIndex++
+    // }
 
     // Добавляем условия в запрос
     if len(conditions) > 0 {
         baseQuery += " AND " + strings.Join(conditions, " AND ")
     }
 
+    // Добавляем GROUP BY
+    baseQuery += " GROUP BY m.id, m.title, m.subject_id, u.id, u.full_name"
+
     // Запрос для общего количества
-    countQuery := "SELECT COUNT(*) FROM (" + baseQuery + ") as filtered"
+    countQuery := "SELECT COUNT(*) FROM (" + strings.Split(baseQuery, "GROUP BY")[0] + ") as filtered"
+    if len(conditions) > 0 {
+        countQuery += " AND " + strings.Join(conditions, " AND ")
+    }
+
     err := r.db.QueryRow(ctx, countQuery, args...).Scan(&total)
     if err != nil {
         return nil, 0, err
     }
 
     // Добавляем пагинацию и сортировку
-    baseQuery += " ORDER BY rating DESC, m.updated_at DESC"
+    baseQuery += " ORDER BY rating DESC NULLS LAST, m.updated_at DESC"
 
     if filters.Limit > 0 {
         baseQuery += fmt.Sprintf(" LIMIT $%d", argIndex)
@@ -105,8 +107,13 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
         var author models.Author
 
         err := rows.Scan(
-            &material.ID, &material.Title, &material.Subject,
-            &author.ID, &author.Name, &material.Rating, &material.StudentsCount,
+            &material.ID,
+            &material.Title,
+            &material.Subject,  // ← это будет subject_id из БД
+            &author.ID,
+            &author.Name,
+            &material.Rating,
+            &material.StudentsCount,
         )
         if err != nil {
             return nil, 0, err
@@ -121,7 +128,10 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
 
 // GetSubjects возвращает список предметов
 func (r *CatalogRepository) GetSubjects(ctx context.Context) ([]models.Subject, error) {
-    query := `SELECT id, name, icon FROM subjects ORDER BY name`
+    // В вашей БД есть только id, name, icon
+    query := `SELECT id, name, COALESCE(icon, '') as icon FROM subjects ORDER BY name`
+    // или получаем уникальные subject_id из материалов:
+    // query := `SELECT DISTINCT subject_id as id, subject_id as name FROM materials ORDER BY subject_id`
 
     rows, err := r.db.Query(ctx, query)
     if err != nil {
@@ -132,9 +142,11 @@ func (r *CatalogRepository) GetSubjects(ctx context.Context) ([]models.Subject, 
     var subjects []models.Subject
     for rows.Next() {
         var subject models.Subject
-        if err := rows.Scan(&subject.ID, &subject.Name, &subject.Icon); err != nil {
+        var icon string
+        if err := rows.Scan(&subject.ID, &subject.Name, &icon); err != nil {
             return nil, err
         }
+        // Если в модели Subject нет поля Icon, просто игнорируем
         subjects = append(subjects, subject)
     }
 
