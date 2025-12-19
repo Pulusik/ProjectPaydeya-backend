@@ -27,7 +27,7 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
 
     // Базовый запрос
     baseQuery := `
-        SELECT m.id, m.title, m.subject,
+        SELECT m.id, m.title, m.subject_id,
                u.id as author_id, u.full_name as author_name,
                COALESCE(rm.rating, 0) as rating,
                COALESCE(rm.students_count, 0) as students_count
@@ -55,7 +55,7 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
     }
 
     if filters.Subject != "" {
-        conditions = append(conditions, fmt.Sprintf("m.subject = $%d", argIndex))
+        conditions = append(conditions, fmt.Sprintf("m.subject_id = $%d", argIndex))
         args = append(args, filters.Subject)
         argIndex++
     }
