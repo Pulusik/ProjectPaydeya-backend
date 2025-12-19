@@ -7,8 +7,6 @@ import (
     "log"
 
     "paydeya-backend/internal/models"
-
-    //"github.com/jackc/pgx/v5"
     "github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,11 +20,16 @@ func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 
 // SearchMaterials поиск материалов с фильтрацией
 func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.CatalogFilters) ([]models.CatalogMaterial, int, error) {
+    // Объявляем переменные здесь, в начале функции
+    var materials []models.CatalogMaterial
+    var total int
+
+    // Базовый запрос
     baseQuery := `
         SELECT
             m.id,
             m.title,
-            m.subject_id as subject,  -- ← subject_id переименовываем в subject
+            m.subject_id as subject,
             u.id as author_id,
             u.full_name as author_name,
             COALESCE(AVG(mr.rating), 0) as rating,
@@ -49,7 +52,7 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
     }
 
     if filters.Subject != "" {
-        conditions = append(conditions, fmt.Sprintf("m.subject_id = $%d", argIndex))  // ← subject_id
+        conditions = append(conditions, fmt.Sprintf("m.subject_id = $%d", argIndex))
         args = append(args, filters.Subject)
         argIndex++
     }
@@ -69,14 +72,23 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
     // Добавляем GROUP BY
     baseQuery += " GROUP BY m.id, m.title, m.subject_id, u.id, u.full_name"
 
-    // Запрос для общего количества
-    countQuery := "SELECT COUNT(*) FROM (" + strings.Split(baseQuery, "GROUP BY")[0] + ") as filtered"
+    // Запрос для общего количества - исправленная версия
+    countQuery := `
+        SELECT COUNT(DISTINCT m.id)
+        FROM materials m
+        JOIN users u ON m.author_id = u.id
+        LEFT JOIN material_ratings mr ON m.id = mr.material_id
+        WHERE m.status = 'published'
+    `
+
     if len(conditions) > 0 {
         countQuery += " AND " + strings.Join(conditions, " AND ")
     }
 
+    // Выполняем запрос количества
     err := r.db.QueryRow(ctx, countQuery, args...).Scan(&total)
     if err != nil {
+        log.Printf("❌ Error counting materials: %v", err)
         return nil, 0, err
     }
 
@@ -98,6 +110,7 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
     // Выполняем основной запрос
     rows, err := r.db.Query(ctx, baseQuery, args...)
     if err != nil {
+        log.Printf("❌ Error querying materials: %v", err)
         return nil, 0, err
     }
     defer rows.Close()
@@ -109,13 +122,14 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
         err := rows.Scan(
             &material.ID,
             &material.Title,
-            &material.Subject,  // ← это будет subject_id из БД
+            &material.Subject,
             &author.ID,
             &author.Name,
             &material.Rating,
             &material.StudentsCount,
         )
         if err != nil {
+            log.Printf("❌ Error scanning material row: %v", err)
             return nil, 0, err
         }
 
@@ -123,18 +137,32 @@ func (r *CatalogRepository) SearchMaterials(ctx context.Context, filters models.
         materials = append(materials, material)
     }
 
+    // Проверяем ошибки после итерации
+    if err := rows.Err(); err != nil {
+        log.Printf("❌ Error after rows iteration: %v", err)
+        return nil, 0, err
+    }
+
+    log.Printf("✅ SearchMaterials: found %d materials (total: %d)", len(materials), total)
     return materials, total, nil
 }
 
 // GetSubjects возвращает список предметов
 func (r *CatalogRepository) GetSubjects(ctx context.Context) ([]models.Subject, error) {
-    // В вашей БД есть только id, name, icon
-    query := `SELECT id, name, COALESCE(icon, '') as icon FROM subjects ORDER BY name`
-    // или получаем уникальные subject_id из материалов:
-    // query := `SELECT DISTINCT subject_id as id, subject_id as name FROM materials ORDER BY subject_id`
+    // Получаем уникальные предметы из материалов
+    query := `
+        SELECT DISTINCT
+            m.subject_id as id,
+            COALESCE(s.name, m.subject_id) as name
+        FROM materials m
+        LEFT JOIN subjects s ON m.subject_id = s.id
+        WHERE m.status = 'published'
+        ORDER BY name
+    `
 
     rows, err := r.db.Query(ctx, query)
     if err != nil {
+        log.Printf("❌ Error querying subjects: %v", err)
         return nil, err
     }
     defer rows.Close()
@@ -142,20 +170,26 @@ func (r *CatalogRepository) GetSubjects(ctx context.Context) ([]models.Subject, 
     var subjects []models.Subject
     for rows.Next() {
         var subject models.Subject
-        var icon string
-        if err := rows.Scan(&subject.ID, &subject.Name, &icon); err != nil {
+        if err := rows.Scan(&subject.ID, &subject.Name); err != nil {
+            log.Printf("❌ Error scanning subject row: %v", err)
             return nil, err
         }
-        // Если в модели Subject нет поля Icon, просто игнорируем
         subjects = append(subjects, subject)
     }
 
+    if err := rows.Err(); err != nil {
+        log.Printf("❌ Error after subjects rows iteration: %v", err)
+        return nil, err
+    }
+
+    log.Printf("✅ GetSubjects: found %d subjects", len(subjects))
     return subjects, nil
 }
 
 // SearchTeachers поиск преподавателей
 func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.TeacherFilters) ([]models.Teacher, error) {
-    log.Printf("Building query with filters: %+v", filters)
+    log.Printf("🔍 SearchTeachers called with filters: %+v", filters)
+
     query := `
         SELECT u.id, u.full_name, u.avatar_url,
                COUNT(DISTINCT m.id) as materials_count,
@@ -188,11 +222,12 @@ func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.T
 
     query += " GROUP BY u.id, u.full_name, u.avatar_url ORDER BY rating DESC NULLS LAST, materials_count DESC"
 
-    log.Printf("Final SQL query: %s", query) // ← ДОБАВЬТЕ
-    log.Printf("Query args: %v", args)       // ← ДОБАВЬТЕ
+    log.Printf("📝 SQL query: %s", query)
+    log.Printf("📝 Query args: %v", args)
 
     rows, err := r.db.Query(ctx, query, args...)
     if err != nil {
+        log.Printf("❌ Error querying teachers: %v", err)
         return nil, err
     }
     defer rows.Close()
@@ -202,20 +237,27 @@ func (r *CatalogRepository) SearchTeachers(ctx context.Context, filters models.T
         var teacher models.Teacher
         var avatarURL *string
         if err := rows.Scan(&teacher.ID, &teacher.Name, &avatarURL, &teacher.MaterialsCount, &teacher.Rating); err != nil {
+            log.Printf("❌ Error scanning teacher row: %v", err)
             return nil, err
         }
 
         // Получаем специализации учителя
         specializations, err := r.getTeacherSpecializations(ctx, teacher.ID)
         if err != nil {
-            log.Printf("SQL query error: %v", err) // ← ДОБАВЬТЕ
-            return nil, err
+            log.Printf("❌ Error getting specializations for teacher %d: %v", teacher.ID, err)
+            // Продолжаем без специализаций
         }
         teacher.Specializations = specializations
 
         teachers = append(teachers, teacher)
     }
 
+    if err := rows.Err(); err != nil {
+        log.Printf("❌ Error after teachers rows iteration: %v", err)
+        return nil, err
+    }
+
+    log.Printf("✅ SearchTeachers: found %d teachers", len(teachers))
     return teachers, nil
 }
 
@@ -235,6 +277,10 @@ func (r *CatalogRepository) getTeacherSpecializations(ctx context.Context, teach
             return nil, err
         }
         specializations = append(specializations, subject)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, err
     }
 
     return specializations, nil
